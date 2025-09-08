@@ -1,105 +1,172 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# ENVIRONATION 2025 - Kompetisi Nasional Lingkungan
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
-
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+Website kompetisi nasional untuk generasi muda peduli lingkungan. Platform ini menyelenggarakan dua kompetisi utama:
+- **LKTI (Lomba Karya Tulis Ilmiah)** - Paper dan Essay Competition
+- **Enviro Business Competition** - Sustainable Business Model Competition
 
 ## Features
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+### Public Features
+- 🏠 **Landing Page** - Informasi kompetisi dan timeline
+- 📝 **Competition Pages** - Detail setiap kompetisi (LKTI & Business Competition)
+- 🔐 **Authentication** - Login/Signup dengan Supabase Auth
+- 📱 **Responsive Design** - Mobile-friendly interface
 
-## Demo
+### Participant Dashboard
+- 👤 **Profile Management** - Update personal information
+- 🏆 **Competition Registration** - Daftar kompetisi yang tersedia
+- 📄 **Submission Management** - Submit karya dengan link file
+- 📊 **Dashboard Overview** - Status registrasi dan submission
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+### Admin Panel
+- 👥 **Manage Participants** - Kelola data peserta
+- 📋 **Manage Submissions** - Review dan penilaian karya
+- 📈 **Statistics Dashboard** - Overview aktivitas kompetisi
+- 🔍 **Advanced Filters** - Filter berdasarkan kompetisi, status, dll
 
-## Deploy to Vercel
+## Tech Stack
 
-Vercel deployment will guide you through creating a Supabase account and project.
+- **Framework**: Next.js 15 with App Router
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI
+- **Language**: TypeScript
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+## Getting Started
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+### Installation
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
-
-## Clone and run locally
-
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
-
-2. Create a Next.js app using the Supabase Starter template npx command
-
+1. **Clone the repository**
    ```bash
-   npx create-next-app --example with-supabase with-supabase-app
+   git clone <repository-url>
+   cd environation
    ```
 
+2. **Install dependencies**
    ```bash
-   yarn create next-app --example with-supabase with-supabase-app
+   npm install
    ```
 
+3. **Setup Environment Variables**
    ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
+   cp .env.example .env.local
    ```
-
-3. Use `cd` to change into the app's directory
-
+   
+   Update `.env.local` with your Supabase credentials:
    ```bash
-   cd with-supabase-app
+   NEXT_PUBLIC_SUPABASE_URL=your-project-url
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=your-anon-key
    ```
 
-4. Rename `.env.example` to `.env.local` and update the following:
-
+4. **Setup Database**
+   
+   Run the SQL schema in your Supabase dashboard:
+   ```bash
+   # Copy content from database/schema.sql
+   # Paste and run in Supabase SQL Editor
    ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   ```
 
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
-
-5. You can now run the Next.js local development server:
-
+5. **Run Development Server**
    ```bash
    npm run dev
    ```
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+6. **Open in Browser**
+   ```
+   http://localhost:3000
+   ```
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+## Database Schema
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+### Tables
+- **profiles** - User profile information
+- **competitions** - Competition details
+- **registrations** - User competition registrations  
+- **submissions** - Submitted works with file links
 
-## Feedback and issues
+### Key Features
+- Row Level Security (RLS) enabled
+- Automatic profile creation on signup
+- Admin role management
+- File uploads via external links (Google Drive, etc.)
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+## Competition Categories
 
-## More Supabase examples
+### LKTI (Lomba Karya Tulis Ilmiah)
+- **Scientific Paper**: Mahasiswa S1/D4/D3, tim 2-3 orang
+- **Essay Competition**: Pelajar SMA/SMK/MA, individual
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+### Enviro Business Competition
+- **Target**: Mahasiswa/Fresh Graduate
+- **Format**: Business Plan, Pitch Deck, Final Presentation
+- **Focus**: Sustainable business models
+
+## File Upload System
+
+Sistem menggunakan link sharing instead of direct upload:
+- Participants upload files to Google Drive, Dropbox, etc.
+- Submit share links through the platform
+- Admins can review via provided links
+- More efficient and cost-effective
+
+## Admin Setup
+
+To create an admin user:
+1. Register normally through the website
+2. Update the user's role in Supabase dashboard:
+   ```sql
+   UPDATE profiles SET role = 'admin' WHERE id = 'user-uuid';
+   ```
+
+## Deployment
+
+### Vercel (Recommended)
+1. Connect GitHub repository to Vercel
+2. Add environment variables in Vercel dashboard
+3. Deploy automatically on push
+
+### Other Platforms
+- Ensure Node.js 18+ support
+- Set environment variables
+- Build command: `npm run build`
+- Start command: `npm start`
+
+## Environment Variables
+
+```bash
+# Required
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=your-supabase-anon-key
+
+# Optional
+NEXT_PUBLIC_SITE_URL=https://your-domain.com
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/new-feature`
+3. Commit changes: `git commit -am 'Add new feature'`
+4. Push branch: `git push origin feature/new-feature`
+5. Submit Pull Request
+
+## Support
+
+For questions or issues:
+- Check the documentation
+- Open GitHub issue
+- Contact admin through the platform
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+
+**ENVIRONATION 2025** - Kompetisi Nasional untuk Generasi Muda Peduli Lingkungan

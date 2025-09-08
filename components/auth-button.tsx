@@ -13,7 +13,10 @@ export async function AuthButton() {
 
   return user ? (
     <div className="flex items-center gap-4">
-      Hey, {user.email}!
+      <Link href="/dashboard" className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white">
+        Dashboard
+      </Link>
+      <span className="text-sm">Hey, {user.email}!</span>
       <LogoutButton />
     </div>
   ) : (
