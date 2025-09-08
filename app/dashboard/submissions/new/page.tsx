@@ -3,12 +3,13 @@ import { redirect } from "next/navigation";
 import { SubmissionForm } from "@/components/submission-form";
 
 interface NewSubmissionPageProps {
-  searchParams: { registration?: string; competition?: string };
+  searchParams: Promise<{ registration?: string; competition?: string }>;
 }
 
 export default async function NewSubmissionPage({
   searchParams,
 }: NewSubmissionPageProps) {
+  const resolvedSearchParams = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -22,7 +23,7 @@ export default async function NewSubmissionPage({
   let registration = null;
 
   // If registration ID is provided, get the registration details
-  if (searchParams.registration) {
+  if (resolvedSearchParams.registration) {
     const { data: regData } = await supabase
       .from("registrations")
       .select(`
@@ -35,14 +36,14 @@ export default async function NewSubmissionPage({
           requirements
         )
       `)
-      .eq("id", searchParams.registration)
+      .eq("id", resolvedSearchParams.registration)
       .eq("user_id", user.id)
       .single();
 
     registration = regData;
   }
   // If competition ID is provided, get the user's registration for that competition
-  else if (searchParams.competition) {
+  else if (resolvedSearchParams.competition) {
     const { data: regData } = await supabase
       .from("registrations")
       .select(`
@@ -55,7 +56,7 @@ export default async function NewSubmissionPage({
           requirements
         )
       `)
-      .eq("competition_id", searchParams.competition)
+      .eq("competition_id", resolvedSearchParams.competition)
       .eq("user_id", user.id)
       .single();
 

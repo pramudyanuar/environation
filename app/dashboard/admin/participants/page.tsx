@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 
 interface AdminParticipantsPageProps {
-  searchParams: { search?: string; competition?: string; status?: string };
+  searchParams: Promise<{ search?: string; competition?: string; status?: string }>;
 }
 
 export default async function AdminParticipantsPage({
   searchParams,
 }: AdminParticipantsPageProps) {
+  const resolvedSearchParams = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -55,20 +56,20 @@ export default async function AdminParticipantsPage({
     .order("created_at", { ascending: false });
 
   // Apply filters
-  if (searchParams.competition) {
-    query = query.eq("competition_id", searchParams.competition);
+  if (resolvedSearchParams.competition) {
+    query = query.eq("competition_id", resolvedSearchParams.competition);
   }
 
-  if (searchParams.status) {
-    query = query.eq("status", searchParams.status);
+  if (resolvedSearchParams.status) {
+    query = query.eq("status", resolvedSearchParams.status);
   }
 
   const { data: registrations } = await query;
 
   // Filter by search term
   const filteredRegistrations = registrations?.filter((registration) => {
-    if (!searchParams.search) return true;
-    const searchTerm = searchParams.search.toLowerCase();
+    if (!resolvedSearchParams.search) return true;
+    const searchTerm = resolvedSearchParams.search.toLowerCase();
     return (
       registration.profiles?.full_name?.toLowerCase().includes(searchTerm) ||
       registration.profiles?.email?.toLowerCase().includes(searchTerm) ||
@@ -138,14 +139,14 @@ export default async function AdminParticipantsPage({
             <div>
               <Input
                 placeholder="Search participants..."
-                defaultValue={searchParams.search}
+                defaultValue={resolvedSearchParams.search}
                 name="search"
               />
             </div>
             <div>
               <select
                 name="competition"
-                defaultValue={searchParams.competition}
+                defaultValue={resolvedSearchParams.competition}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="">All Competitions</option>
@@ -159,7 +160,7 @@ export default async function AdminParticipantsPage({
             <div>
               <select
                 name="status"
-                defaultValue={searchParams.status}
+                defaultValue={resolvedSearchParams.status}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
                 <option value="">All Status</option>
