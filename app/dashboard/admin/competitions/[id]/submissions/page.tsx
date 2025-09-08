@@ -5,13 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 
-interface AdminSubmissionsPageProps {
-  searchParams: Promise<{ competition?: string; status?: string }>;
+interface CompetitionSubmissionsPageProps {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ status?: string }>;
 }
 
-export default async function AdminSubmissionsPage({
+export default async function CompetitionSubmissionsPage({
+  params,
   searchParams,
-}: AdminSubmissionsPageProps) {
+}: CompetitionSubmissionsPageProps) {
+  const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
   const supabase = await createClient();
 
@@ -34,79 +37,74 @@ export default async function AdminSubmissionsPage({
     return redirect("/dashboard");
   }
 
-  // Get all submissions
-  const { data: allSubmissions, error: subError } = await supabase
-    .from("submissions")
+  // Get competition details
+  const { data: competition } = await supabase
+    .from("competitions")
     .select("*")
-    .order("created_at", { ascending: false });
+    .eq("id", resolvedParams.id)
+    .single();
 
-  console.log("All Submissions - Submissions found:", allSubmissions?.length || 0);
-  console.log("All Submissions - Query error:", subError);
+  console.log("Server Submissions Competition ID:", resolvedParams.id);
+  console.log("Server Submissions Competition found:", competition);
+
+  if (!competition) {
+    return redirect("/dashboard/admin/competitions");
+  }
+
+  // Get submissions for this specific competition
+  // First get registrations for this competition
+  const { data: competitionRegistrations } = await supabase
+    .from("registrations")
+    .select("id")
+    .eq("competition_id", resolvedParams.id);
+
+  console.log("Server Competition Registrations:", competitionRegistrations);
 
   let submissions = [];
-  if (allSubmissions && allSubmissions.length > 0) {
-    // Get registrations for all submissions
-    const registrationIds = [...new Set(allSubmissions.map(s => s.registration_id))];
-    const { data: registrations } = await supabase
-      .from("registrations")
+  if (competitionRegistrations && competitionRegistrations.length > 0) {
+    const registrationIds = competitionRegistrations.map(r => r.id);
+    
+    // Get submissions for those registrations
+    const { data: submissionsData, error: submissionsError } = await supabase
+      .from("submissions")
       .select("*")
-      .in("id", registrationIds);
+      .in("registration_id", registrationIds)
+      .order("created_at", { ascending: false });
 
-    console.log("All Submissions - Registrations found:", registrations?.length || 0);
+    console.log("Server Submissions found:", submissionsData?.length || 0);
+    console.log("Server Submissions error:", submissionsError);
 
-    if (registrations && registrations.length > 0) {
-      // Get profiles
-      const userIds = [...new Set(registrations.map(r => r.user_id))];
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("*")
-        .in("id", userIds);
+    if (submissionsData && submissionsData.length > 0) {
+      // Get registration details and profiles
+      const { data: registrationsWithProfiles } = await supabase
+        .from("registrations")
+        .select(`
+          id,
+          user_id,
+          institution,
+          team_name,
+          profiles!registrations_user_id_fkey (
+            full_name,
+            phone
+          )
+        `)
+        .in("id", registrationIds);
 
-      // Get competitions
-      const competitionIds = [...new Set(registrations.map(r => r.competition_id))];
-      const { data: competitions } = await supabase
-        .from("competitions")
-        .select("id, name, category")
-        .in("id", competitionIds);
+      console.log("Server Registrations with profiles:", registrationsWithProfiles);
 
-      console.log("All Submissions - Profiles found:", profiles?.length || 0);
-      console.log("All Submissions - Competitions found:", competitions?.length || 0);
-
-      // Combine data
-      submissions = allSubmissions.map(submission => {
-        const registration = registrations.find(r => r.id === submission.registration_id);
-        const profile = registration ? profiles?.find(p => p.id === registration.user_id) : null;
-        const competition = registration ? competitions?.find(c => c.id === registration.competition_id) : null;
-
-        return {
-          ...submission,
-          registrations: registration ? {
-            ...registration,
-            profiles: profile,
-            competitions: competition
-          } : null
-        };
-      });
+      // Combine submissions with registration data
+      submissions = submissionsData.map(submission => ({
+        ...submission,
+        registrations: registrationsWithProfiles?.find(r => r.id === submission.registration_id) || null
+      }));
     }
   }
 
-  // Filter by competition if specified
-  if (resolvedSearchParams.competition) {
-    submissions = submissions.filter(s => 
-      s.registrations?.competitions?.id === resolvedSearchParams.competition
-    );
-  }
+  console.log("Server Final submissions:", submissions);
 
-  // Get competition info if filtering
-  let competitionInfo = null;
-  if (resolvedSearchParams.competition) {
-    const { data: competition } = await supabase
-      .from("competitions")
-      .select("id, name, category")
-      .eq("id", resolvedSearchParams.competition)
-      .single();
-    competitionInfo = competition;
-  }
+  console.log("Competition ID:", resolvedParams.id);
+  console.log("Submissions found:", submissions?.length || 0);
+  console.log("Submissions data:", submissions);
 
   // Group submissions by status
   const submissionsByStatus = {
@@ -119,32 +117,34 @@ export default async function AdminSubmissionsPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Review Submissions
-            {competitionInfo && (
-              <span className="text-lg font-normal text-gray-600 dark:text-gray-300">
-                {" "}- {competitionInfo.name}
-              </span>
-            )}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">
-            {competitionInfo 
-              ? `Kelola submission untuk kompetisi ${competitionInfo.name}`
-              : "Kelola dan review semua submission dari peserta"
-            }
-          </p>
-          {competitionInfo && (
-            <div className="mt-2">
-              <Badge variant="outline">{competitionInfo.category}</Badge>
-              <Button asChild size="sm" variant="outline" className="ml-2">
-                <Link href="/dashboard/admin/submissions">
-                  View All Submissions
-                </Link>
-              </Button>
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Submissions - {competition.name}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
+              Kelola submission untuk kompetisi {competition.name}
+            </p>
+            <div className="mt-3 flex items-center space-x-2">
+              <Badge variant="outline">{competition.category}</Badge>
+              <Badge variant={competition.status === "open" ? "default" : "secondary"}>
+                {competition.status}
+              </Badge>
             </div>
-          )}
+          </div>
+          <div className="flex space-x-2">
+            <Button asChild size="sm" variant="outline">
+              <Link href="/dashboard/admin/submissions">
+                All Submissions
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/dashboard/admin/competitions">
+                Back to Competitions
+              </Link>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -206,49 +206,51 @@ export default async function AdminSubmissionsPage({
       {/* Quick Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Quick Filters</CardTitle>
+          <CardTitle>Filter by Status</CardTitle>
           <CardDescription>
-            Filter submission berdasarkan kategori kompetisi dan status
+            Filter submission berdasarkan status review
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm">
-              All Submissions
+            <Button asChild variant={!resolvedSearchParams.status ? "default" : "outline"} size="sm">
+              <Link href={`/dashboard/admin/competitions/${resolvedParams.id}/submissions`}>
+                All Submissions
+              </Link>
             </Button>
-            <Button variant="outline" size="sm">
-              LKTI Only
+            <Button asChild variant={resolvedSearchParams.status === "submitted" ? "default" : "outline"} size="sm">
+              <Link href={`/dashboard/admin/competitions/${resolvedParams.id}/submissions?status=submitted`}>
+                Pending Review
+              </Link>
             </Button>
-            <Button variant="outline" size="sm">
-              Business Competition Only
+            <Button asChild variant={resolvedSearchParams.status === "approved" ? "default" : "outline"} size="sm">
+              <Link href={`/dashboard/admin/competitions/${resolvedParams.id}/submissions?status=approved`}>
+                Approved
+              </Link>
             </Button>
-            <Button variant="outline" size="sm" className="border-orange-200 text-orange-600">
-              Pending Review
-            </Button>
-            <Button variant="outline" size="sm" className="border-green-200 text-green-600">
-              Approved
-            </Button>
-            <Button variant="outline" size="sm" className="border-red-200 text-red-600">
-              Rejected
+            <Button asChild variant={resolvedSearchParams.status === "rejected" ? "default" : "outline"} size="sm">
+              <Link href={`/dashboard/admin/competitions/${resolvedParams.id}/submissions?status=rejected`}>
+                Rejected
+              </Link>
             </Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Pending Submissions */}
-      {submissionsByStatus.submitted.length > 0 && (
+      {submissionsByStatus.submitted.length > 0 && !resolvedSearchParams.status && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg text-orange-600">
               Pending Review ({submissionsByStatus.submitted.length})
             </CardTitle>
             <CardDescription>
-              Submission yang menunggu review dari admin
+              Submission yang menunggu review untuk {competition.name}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {submissionsByStatus.submitted.map((submission) => (
+              {submissionsByStatus.submitted.slice(0, 3).map((submission) => (
                 <div
                   key={submission.id}
                   className="flex items-center justify-between p-4 border border-orange-200 bg-orange-50 dark:bg-orange-900/20 rounded-lg"
@@ -257,9 +259,6 @@ export default async function AdminSubmissionsPage({
                     <h3 className="font-semibold text-gray-900 dark:text-white">
                       {submission.title}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {submission.registrations?.competitions?.name} - {submission.registrations?.competitions?.category}
-                    </p>
                     <div className="flex items-center space-x-4 mt-2">
                       <span className="text-sm text-gray-500">
                         By: {submission.registrations?.profiles?.full_name}
@@ -291,6 +290,15 @@ export default async function AdminSubmissionsPage({
                   </div>
                 </div>
               ))}
+              {submissionsByStatus.submitted.length > 3 && (
+                <div className="text-center">
+                  <Button asChild variant="outline">
+                    <Link href={`/dashboard/admin/competitions/${resolvedParams.id}/submissions?status=submitted`}>
+                      View All Pending ({submissionsByStatus.submitted.length})
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -299,9 +307,14 @@ export default async function AdminSubmissionsPage({
       {/* All Submissions */}
       <Card>
         <CardHeader>
-          <CardTitle>All Submissions</CardTitle>
+          <CardTitle>
+            {resolvedSearchParams.status ? `${resolvedSearchParams.status.charAt(0).toUpperCase() + resolvedSearchParams.status.slice(1)} Submissions` : 'All Submissions'}
+          </CardTitle>
           <CardDescription>
-            Semua submission yang telah diterima
+            {resolvedSearchParams.status 
+              ? `Submission dengan status ${resolvedSearchParams.status} untuk ${competition.name}`
+              : `Semua submission yang diterima untuk ${competition.name}`
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -316,9 +329,6 @@ export default async function AdminSubmissionsPage({
                     <h3 className="font-semibold text-gray-900 dark:text-white">
                       {submission.title}
                     </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {submission.registrations?.competitions?.name} - {submission.registrations?.competitions?.category}
-                    </p>
                     <div className="flex items-center space-x-4 mt-2">
                       <span className="text-sm text-gray-500">
                         By: {submission.registrations?.profiles?.full_name}
@@ -326,9 +336,11 @@ export default async function AdminSubmissionsPage({
                       <span className="text-sm text-gray-500">
                         Institution: {submission.registrations?.institution}
                       </span>
-                      <span className="text-sm text-gray-500">
-                        Phone: {submission.registrations?.profiles?.phone}
-                      </span>
+                      {submission.registrations?.team_name && (
+                        <span className="text-sm text-blue-600">
+                          Team: {submission.registrations?.team_name}
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center space-x-4 mt-1">
                       <span className="text-xs text-gray-500">
@@ -391,10 +403,36 @@ export default async function AdminSubmissionsPage({
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Belum ada submission yang masuk.
+                {resolvedSearchParams.status 
+                  ? `No ${resolvedSearchParams.status} submissions found for this competition.`
+                  : "No submissions found for this competition."
+                }
               </p>
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Export Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Export Data</CardTitle>
+          <CardDescription>
+            Export data submission untuk kompetisi {competition.name}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex space-x-4">
+            <Button variant="outline">
+              Export All Submissions
+            </Button>
+            <Button variant="outline">
+              Export by Status
+            </Button>
+            <Button variant="outline">
+              Export Statistics
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>

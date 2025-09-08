@@ -6,13 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 
-interface AdminParticipantsPageProps {
-  searchParams: Promise<{ search?: string; competition?: string; status?: string }>;
+interface CompetitionParticipantsPageProps {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ search?: string; status?: string }>;
 }
 
-export default async function AdminParticipantsPage({
+export default async function CompetitionParticipantsPage({
+  params,
   searchParams,
-}: AdminParticipantsPageProps) {
+}: CompetitionParticipantsPageProps) {
+  const resolvedParams = await params;
   const resolvedSearchParams = await searchParams;
   const supabase = await createClient();
 
@@ -35,55 +38,63 @@ export default async function AdminParticipantsPage({
     return redirect("/dashboard");
   }
 
-  // Build query for registrations
-  const { data: allRegistrations, error: regError } = await supabase
+  // Get competition details
+  const { data: competition } = await supabase
+    .from("competitions")
+    .select("*")
+    .eq("id", resolvedParams.id)
+    .single();
+
+  console.log("Server Competition ID:", resolvedParams.id);
+  console.log("Server Competition found:", competition);
+
+  if (!competition) {
+    return redirect("/dashboard/admin/competitions");
+  }
+
+  // Build query for registrations for this specific competition
+  const { data: registrations, error } = await supabase
     .from("registrations")
     .select("*")
+    .eq("competition_id", resolvedParams.id)
     .order("created_at", { ascending: false });
 
-  console.log("All Participants - Registrations found:", allRegistrations?.length || 0);
-  console.log("All Participants - Query error:", regError);
-
-  // Apply competition filter
-  const filteredByCompetition = resolvedSearchParams.competition 
-    ? allRegistrations?.filter(r => r.competition_id === resolvedSearchParams.competition) || []
-    : allRegistrations || [];
+  console.log("Server Registrations found:", registrations?.length || 0);
+  console.log("Server Registrations data:", registrations);
+  console.log("Server Query error:", error);
 
   // Apply status filter
   const filteredByStatus = resolvedSearchParams.status 
-    ? filteredByCompetition.filter(r => r.status === resolvedSearchParams.status)
-    : filteredByCompetition;
+    ? registrations?.filter(r => r.status === resolvedSearchParams.status) || []
+    : registrations || [];
 
-  // Get profiles and competitions separately
-  let registrations = [];
+  // Get profiles separately if we have registrations
+  let registrationsWithProfiles = [];
   if (filteredByStatus && filteredByStatus.length > 0) {
-    // Get profiles
-    const userIds = [...new Set(filteredByStatus.map(r => r.user_id))];
+    const userIds = filteredByStatus.map(r => r.user_id);
     const { data: profiles } = await supabase
       .from("profiles")
       .select("*")
       .in("id", userIds);
 
-    // Get competitions
-    const competitionIds = [...new Set(filteredByStatus.map(r => r.competition_id))];
-    const { data: competitions } = await supabase
-      .from("competitions")
-      .select("id, name, category")
-      .in("id", competitionIds);
-
-    console.log("All Participants - Profiles found:", profiles?.length || 0);
-    console.log("All Participants - Competitions found:", competitions?.length || 0);
-
-    // Combine data
-    registrations = filteredByStatus.map(registration => ({
+    console.log("Server Profiles found:", profiles?.length || 0);
+    console.log("Server Profiles data:", profiles);
+    
+    // Combine registrations with profiles
+    registrationsWithProfiles = filteredByStatus.map(registration => ({
       ...registration,
-      profiles: profiles?.find(p => p.id === registration.user_id) || null,
-      competitions: competitions?.find(c => c.id === registration.competition_id) || null
+      profiles: profiles?.find(p => p.id === registration.user_id) || null
     }));
   }
 
+  console.log("Server Final registrationsWithProfiles:", registrationsWithProfiles);
+
+  console.log("Competition ID:", resolvedParams.id);
+  console.log("Registrations found:", registrations?.length || 0);
+  console.log("Registrations data:", registrations);
+
   // Filter by search term
-  const filteredRegistrations = registrations?.filter((registration) => {
+  const filteredRegistrations = registrationsWithProfiles?.filter((registration) => {
     if (!resolvedSearchParams.search) return true;
     const searchTerm = resolvedSearchParams.search.toLowerCase();
     return (
@@ -94,51 +105,43 @@ export default async function AdminParticipantsPage({
     );
   });
 
-  // Get competitions for filter
-  const { data: competitions } = await supabase
-    .from("competitions")
-    .select("id, name, category")
-    .order("name");
-
-  // Get competition info if filtering
-  let competitionInfo = null;
-  if (resolvedSearchParams.competition) {
-    competitionInfo = competitions?.find(c => c.id === resolvedSearchParams.competition);
-  }
-
   // Get statistics
-  const totalRegistrations = registrations?.length || 0;
-  const registeredCount = registrations?.filter(r => r.status === "registered").length || 0;
-  const confirmedCount = registrations?.filter(r => r.status === "confirmed").length || 0;
+  const totalRegistrations = registrationsWithProfiles?.length || 0;
+  const registeredCount = registrationsWithProfiles?.filter(r => r.status === "registered").length || 0;
+  const confirmedCount = registrationsWithProfiles?.filter(r => r.status === "confirmed").length || 0;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Manage Participants
-          {competitionInfo && (
-            <span className="text-lg font-normal text-gray-600 dark:text-gray-300">
-              {" "}- {competitionInfo.name}
-            </span>
-          )}
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 mt-2">
-          {competitionInfo 
-            ? `Kelola peserta untuk kompetisi ${competitionInfo.name}`
-            : "Kelola pendaftaran dan data peserta kompetisi."
-          }
-        </p>
-        {competitionInfo && (
-          <div className="mt-3">
-            <Badge variant="outline">{competitionInfo.category}</Badge>
-            <Button asChild size="sm" variant="outline" className="ml-2">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Participants - {competition.name}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
+              Kelola peserta untuk kompetisi {competition.name}
+            </p>
+            <div className="mt-3 flex items-center space-x-2">
+              <Badge variant="outline">{competition.category}</Badge>
+              <Badge variant={competition.status === "open" ? "default" : "secondary"}>
+                {competition.status}
+              </Badge>
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            <Button asChild size="sm" variant="outline">
               <Link href="/dashboard/admin/participants">
-                View All Participants
+                All Participants
+              </Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/dashboard/admin/competitions">
+                Back to Competitions
               </Link>
             </Button>
           </div>
-        )}
+        </div>
       </div>
 
       {/* Stats */}
@@ -175,27 +178,13 @@ export default async function AdminParticipantsPage({
           <CardTitle>Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          <form className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <form className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Input
                 placeholder="Search participants..."
                 defaultValue={resolvedSearchParams.search}
                 name="search"
               />
-            </div>
-            <div>
-              <select
-                name="competition"
-                defaultValue={resolvedSearchParams.competition}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="">All Competitions</option>
-                {competitions?.map((competition) => (
-                  <option key={competition.id} value={competition.id}>
-                    {competition.name}
-                  </option>
-                ))}
-              </select>
             </div>
             <div>
               <select
@@ -219,7 +208,7 @@ export default async function AdminParticipantsPage({
         <CardHeader>
           <CardTitle>Participants ({filteredRegistrations?.length || 0})</CardTitle>
           <CardDescription>
-            Daftar semua peserta yang terdaftar
+            Daftar peserta yang terdaftar untuk {competition.name}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -247,25 +236,19 @@ export default async function AdminParticipantsPage({
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">
-                          {registration.competitions?.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {registration.competitions?.category}
-                        </p>
-                        <p className="text-xs text-gray-500">
                           {registration.institution}
                         </p>
+                        {registration.contact_phone && (
+                          <p className="text-xs text-gray-500">
+                            Phone: {registration.contact_phone}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-4 mt-2">
                       <span className="text-xs text-gray-500">
                         Registered: {new Date(registration.created_at).toLocaleDateString('id-ID')}
                       </span>
-                      {registration.contact_phone && (
-                        <span className="text-xs text-gray-500">
-                          Phone: {registration.contact_phone}
-                        </span>
-                      )}
                     </div>
                     {registration.team_members && (
                       <div className="mt-2">
@@ -306,7 +289,7 @@ export default async function AdminParticipantsPage({
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-600 dark:text-gray-300">
-                No participants found.
+                No participants found for this competition.
               </p>
             </div>
           )}
@@ -318,16 +301,13 @@ export default async function AdminParticipantsPage({
         <CardHeader>
           <CardTitle>Export Data</CardTitle>
           <CardDescription>
-            Export data peserta untuk analisis lebih lanjut
+            Export data peserta untuk kompetisi {competition.name}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex space-x-4">
             <Button variant="outline">
-              Export All Participants
-            </Button>
-            <Button variant="outline">
-              Export by Competition
+              Export Participants
             </Button>
             <Button variant="outline">
               Export Statistics
