@@ -38,7 +38,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      {/* FIXED: Added the whyteInktrap variable to the body */}
+      <head>
+        <link rel="icon" href="/logo.png" type="image/png" />
+      </head>
       <body className={`${geistSans.variable} ${whyteInktrap.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
