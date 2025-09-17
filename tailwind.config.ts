@@ -10,6 +10,10 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        whyte: ["var(--font-whyte-inktrap)"],
+        sans: ["var(--font-geist-sans)"], // Assuming you still want Geist as default sans
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",

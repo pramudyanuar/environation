@@ -1,5 +1,8 @@
+// app/layout.tsx
+
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
+import localFont from 'next/font/local'; // FIXED: Import localFont
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 
@@ -14,10 +17,18 @@ export const metadata: Metadata = {
   keywords: ["environation", "kompetisi lingkungan", "LKTI", "business competition", "sustainability", "environment"],
 };
 
+// Setup for the default sans-serif font
 const geistSans = Geist({
   variable: "--font-geist-sans",
   display: "swap",
   subsets: ["latin"],
+});
+
+// FIXED: Setup for the local custom font
+const whyteInktrap = localFont({
+  src: './fonts/WhyteInktrap-Regular.ttf',
+  display: 'swap',
+  variable: '--font-whyte-inktrap',
 });
 
 export default function RootLayout({
@@ -27,7 +38,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`}>
+      {/* FIXED: Added the whyteInktrap variable to the body */}
+      <body className={`${geistSans.variable} ${whyteInktrap.variable} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
