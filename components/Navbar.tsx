@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 
 const NavLogo = () => (
   <div className="">
@@ -18,6 +19,18 @@ const NavLogo = () => (
 );
 
 export default function Navbar() {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsScrolled(scrollTop > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <motion.header
       initial={{ y: -100, opacity: 0 }}
@@ -28,9 +41,11 @@ export default function Navbar() {
         damping: 20,
         delay: 0.5,
       }}
-      className="fixed top-0 left-0 w-full z-50 p-1 sm:p-4"
+      className="fixed top-0 left-0 w-full z-50"
     >
-      <nav className="w-full max-w-[98vw] sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-xl mx-auto flex justify-between items-center px-1 sm:px-4 py-1.5 sm:py-2 rounded-full">
+      <nav className={`max-w-[98vw] sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-xl mx-auto flex justify-between items-center px-1 sm:px-4 py-1.5 sm:py-2 rounded-full mt-1 sm:mt-4 transition-all duration-300 ${
+        isScrolled ? "bg-slate-900/90 backdrop-blur-md shadow-lg border border-slate-700/50" : ""
+      }`}>
         <Link href="/" aria-label="Homepage">
           <NavLogo />
         </Link>

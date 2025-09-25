@@ -51,7 +51,7 @@ export async function updateSession(request: NextRequest) {
   const publicRoutes = [
     '/',
     '/lkti',
-    '/enviro-business-competition',
+    '/ebc',
     '/auth',
   ];
 
