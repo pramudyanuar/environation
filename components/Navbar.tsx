@@ -6,12 +6,12 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 
 const NavLogo = () => (
-  <div className="w-8 h-8">
+  <div className="">
     <Image
       src="/logo.png"
       alt="Environation Logo"
-      width={80}
-      height={80}
+      width={100}
+      height={100}
       className="w-full h-full object-contain"
     />
   </div>
@@ -28,24 +28,24 @@ export default function Navbar() {
         damping: 20,
         delay: 0.5,
       }}
-      className="fixed top-0 left-0 w-full z-50 p-4"
+      className="fixed top-0 left-0 w-full z-50 p-1 sm:p-4"
     >
-      <nav className="w-full max-w-screen-xl mx-auto flex justify-between items-center px-4 py-2 bg-white/70 backdrop-blur-lg rounded-full shadow-lg border border-green-100">
+      <nav className="w-full max-w-[98vw] sm:max-w-screen-sm md:max-w-screen-md lg:max-w-screen-xl mx-auto flex justify-between items-center px-1 sm:px-4 py-1.5 sm:py-2 rounded-full">
         <Link href="/" aria-label="Homepage">
           <NavLogo />
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 sm:gap-3">
           <Button
             asChild
             size="sm"
-            className="rounded-full px-5 font-medium border border-green-500 text-green-600 bg-transparent hover:bg-green-100 hover:text-green-700 hover:border-green-600 transition-colors"
+            className="bg-transparent hover:bg-yellow-400/90 text-white hover:text-black border border-yellow-400 font-semibold rounded-full px-2 sm:px-5 py-1 sm:py-2 text-xs sm:text-sm shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
           >
             <Link href="/auth/login">Sign In</Link>
           </Button>
           <Button
             asChild
             size="sm"
-            className="bg-green-500 hover:bg-green-600 text-white font-semibold rounded-full px-5 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
+            className="bg-yellow-400 hover:bg-transparent border border-transparent hover:border-yellow-400 text-black hover:text-white font-semibold rounded-full px-2 sm:px-5 py-1 sm:py-2 text-xs sm:text-sm shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
           >
             <Link href="/auth/sign-up">Sign Up</Link>
           </Button>
