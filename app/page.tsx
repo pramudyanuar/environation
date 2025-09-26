@@ -2,21 +2,9 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { useEffect, useState, useRef } from "react";
 
-const TitleLogo = () => (
-  <div className="w-10 h-10 md:w-16 md:h-16 shrink-0 mx-1">
-    <Image
-      src="/title-logo.svg"
-      alt="Environation Title Logo"
-      width={40}
-      height={40}
-      className="w-full h-full object-contain"
-    />
-  </div>
-);
 
 const BackToTop = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -94,8 +82,19 @@ export default function Home() {
   }
   const [selectedEvent, setSelectedEvent] = useState<EventType | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   useEffect(() => {
@@ -118,467 +117,89 @@ export default function Home() {
     });
     if (targetIdx === -1) targetIdx = events.length - 1;
 
-    setTimeout(() => {
-      const container = scrollRef.current;
-      const cards = container?.querySelectorAll('.group');
-      if (container && cards && cards[targetIdx]) {
-        const card = cards[targetIdx] as HTMLElement;
-        container.scrollTo({
-          left: card.offsetLeft - 24, // 24px padding
-          behavior: 'smooth'
-        });
-      }
-    }, 500);
-  }, [mounted]);
+    if (!isMobile) {
+      setTimeout(() => {
+        const container = scrollRef.current;
+        const cards = container?.querySelectorAll('.group');
+        if (container && cards && cards[targetIdx]) {
+          const card = cards[targetIdx] as HTMLElement;
+          container.scrollTo({
+            left: card.offsetLeft - 24, // 24px padding
+            behavior: 'smooth'
+          });
+        }
+      }, 500);
+    } else {
+      setCurrentSlide(targetIdx);
+    }
+  }, [mounted, isMobile]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % 8); // 8 events total
+    }, 4000); // Change slide every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [isMobile]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white overflow-hidden scroll-smooth">
       <Navbar />
       <BackToTop />
 
-      {/* Hero Section - Unique & Creative Design */}
-      <section
-        className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-slate-900 via-green-900 to-emerald-900"
-      >
-        {/* Dynamic Background with Morphing Shapes */}
-        <div className="absolute inset-0">
-          {/* Animated Morphing Blobs - Hide on mobile */}
-          <motion.div
-            className="hidden sm:block absolute top-10 left-10 w-96 h-96 bg-gradient-to-r from-green-400/30 to-blue-500/30 rounded-full blur-3xl"
-            animate={{
-              scale: [1, 1.2, 0.8, 1.1, 1],
-              x: [0, 50, -30, 20, 0],
-              y: [0, -30, 40, -10, 0],
-              borderRadius: ["50%", "60%", "40%", "70%", "50%"],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          <motion.div
-            className="hidden sm:block absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-purple-400/25 to-pink-500/25 rounded-full blur-3xl"
-            animate={{
-              scale: [1.1, 0.9, 1.3, 0.7, 1.1],
-              x: [0, -40, 60, -20, 0],
-              y: [0, 50, -40, 30, 0],
-              borderRadius: ["60%", "40%", "80%", "30%", "60%"],
-            }}
-            transition={{
-              duration: 25,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 2,
-            }}
-          />
-          <motion.div
-            className="hidden sm:block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-full blur-2xl"
-            animate={{
-              scale: [0.8, 1.4, 0.6, 1.2, 0.8],
-              rotate: [0, 180, 360, 90, 0],
-              borderRadius: ["50%", "30%", "70%", "20%", "50%"],
-            }}
-            transition={{
-              duration: 18,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 1,
-            }}
-          />
+      {/* Hero Section - Clean Welcome Design */}
+      <section className="relative min-h-screen w-full overflow-hidden flex justify-center items-center">
+        
+    {/* Background (Image & Overlays) */}
+    <div className="absolute inset-0 w-full h-full">
+      <Image
+        src="/bg-landing.png"
+        alt="Wind Farm Background"
+        className="object-cover w-full h-full"
+        layout="fill"
+        objectFit="cover"
+      />
+    </div>
 
-          {/* Floating Geometric Shapes - Hide on mobile */}
-          <motion.div
-            className="hidden sm:block absolute top-20 right-1/4 w-4 h-4 bg-green-300/60 rotate-45"
-            animate={{
-              y: [0, -100, 0],
-              rotate: [45, 135, 225, 315, 45],
-              opacity: [0.6, 1, 0.3, 0.8, 0.6],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-          <motion.div
-            className="hidden sm:block absolute bottom-32 left-1/4 w-6 h-6 bg-blue-300/50 rounded-full"
-            animate={{
-              x: [0, 150, -50, 100, 0],
-              y: [0, -80, 60, -40, 0],
-              scale: [1, 1.5, 0.5, 1.2, 1],
-            }}
-            transition={{
-              duration: 12,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 3,
-            }}
-          />
-          <motion.div
-            className="hidden sm:block absolute top-1/3 right-10 w-3 h-12 bg-purple-300/40 rounded-full"
-            animate={{
-              height: [48, 16, 64, 24, 48],
-              rotate: [0, 90, 180, 270, 360],
-              opacity: [0.4, 0.8, 0.2, 0.6, 0.4],
-            }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: 1.5,
-            }}
-          />
+        {/* Main Content */}
+        <div className="relative z-10 flex flex-col items-center justify-center w-full max-w-5xl px-4 text-center">
+            <h1 className="leading-none">
+              <span className="block text-white text-2xl md:text-3xl font-semibold mb-2">Welcome to</span>
+              <div className="flex flex-col items-center justify-center mt-2 md:flex-row md:gap-2">
+                <div className="flex flex-row items-center justify-center gap-1 md:gap-2">
+                  <span className="text-white font-black text-3xl md:text-8xl lg:text-9xl tracking-tighter font-whyte">ENVIRONATI</span>
+                  <div className="inline-block align-middle w-8 h-8 md:w-14 md:h-14 lg:w-16 lg:h-16 -translate-y-1">
+                    <Image src="/title-logo.svg" alt="O Logo" className="w-full h-full font-whyte" layout="fill" objectFit="cover" />
+                  </div>
+                  <span className="text-white font-black text-3xl md:text-8xl lg:text-9xl tracking-tighter font-whyte">N!</span>
+                </div>
+              </div>
+            </h1>
 
-          {/* Interactive Particle Field - Hide on mobile */}
-          {mounted && (
-            <div className="hidden sm:block absolute inset-0">
-              {Array.from({ length: 15 }, (_, i) => (
-                <motion.div
-                  key={`particle-${i}`}
-                  className="absolute w-1 h-1 bg-white/40 rounded-full"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                  }}
-                  animate={{
-                    x: [0, Math.random() * 200 - 100, 0],
-                    y: [0, Math.random() * 200 - 100, 0],
-                    opacity: [0, 1, 0],
-                    scale: [0, 1, 0],
-                  }}
-                  transition={{
-                    duration: 4 + Math.random() * 4,
-                    repeat: Infinity,
-                    delay: Math.random() * 4,
-                    ease: "easeInOut",
-                  }}
-                />
-              ))}
+            <p className="text-white text-2xl md:text-3xl font-semibold italic tracking-wide mt-6 mb-2">
+                Together for a Greener Future: Act, Preserve, Sustain
+            </p>
+            <p className="text-white text-base md:text-xl mb-8 max-w-xl">
+                Join the movement empower change, inspire innovation, and build a legacy of sustainability.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4">
+                <a href="/lkti" className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-white rounded-full text-white font-bold bg-transparent hover:bg-white/20 transition-colors duration-300 text-base md:text-lg">
+                    LKTI 
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                </a>
+                <a href="/ebc" className="flex items-center justify-center gap-2 px-6 py-3 border-2 border-white rounded-full text-white font-bold bg-transparent hover:bg-white/20 transition-colors duration-300 text-base md:text-lg">
+                    EBC
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                </a>
             </div>
-          )}
-
-          {/* Dynamic Grid Overlay */}
-          <motion.div
-            className="absolute inset-0 opacity-10"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-              `,
-              backgroundSize: '50px 50px',
-            }}
-            animate={{
-              backgroundPosition: ['0px 0px', '50px 50px', '0px 0px'],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          />
         </div>
-
-        {/* Main Content - Asymmetrical Layout */}
-        <div className="relative z-10 min-h-screen flex items-center px-4 sm:px-0">
-          <div className="w-full sm:px-4 md:max-w-screen-xl md:mx-auto">
-            <div className="grid lg:grid-cols-12 gap-8 items-center min-h-screen py-20">
-              {/* Left Content - Text */}
-              <motion.div
-                className="lg:col-span-7 space-y-6 lg:space-y-8"
-                initial={{ opacity: 0, x: -100 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 1, delay: 0.2 }}
-              >
-                <motion.div
-                  className="space-y-3 lg:space-y-4"
-                  initial={{ opacity: 0, y: 50 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-                >
-                  <motion.span
-                    className="inline-block px-3 py-1 lg:px-4 lg:py-2 bg-white/10 backdrop-blur-sm rounded-full text-green-200 text-xs lg:text-sm font-medium border border-white/20"
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                  >
-                    Selamat Datang di
-                  </motion.span>
-
-                  <motion.h1
-                    className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black text-white leading-tight flex flex-wrap items-center gap-0"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.6 }}
-                  >
-                    <motion.span
-                      className="bg-gradient-to-r from-green-300 via-blue-300 to-purple-300 bg-clip-text text-transparent"
-                      animate={{
-                        backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                      }}
-                      transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: "linear",
-                      }}
-                    >
-                      ENVIRONATI
-                    </motion.span>
-                    <TitleLogo />
-                    <motion.span
-                      className="bg-gradient-to-r from-purple-300 via-pink-300 to-red-300 bg-clip-text text-transparent"
-                      animate={{
-                        backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                      }}
-                      transition={{
-                        duration: 6,
-                        repeat: Infinity,
-                        ease: "linear",
-                        delay: 1,
-                      }}
-                    >
-                      N!
-                    </motion.span>
-                  </motion.h1>
-                </motion.div>
-
-                <motion.div
-                  className="text-center lg:text-left"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.8 }}
-                >
-                  <motion.p
-                    className="text-lg sm:text-xl md:text-xl lg:text-2xl text-green-200 font-semibold leading-relaxed max-w-2xl"
-                    animate={{
-                      textShadow: [
-                        "0 0 10px rgba(34,197,94,0.3)",
-                        "0 0 20px rgba(34,197,94,0.5)",
-                        "0 0 10px rgba(34,197,94,0.3)",
-                      ]
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                  >
-                                        Bersama untuk Masa Depan yang Lebih Hijau: Bertindak, Melestarikan, Berkelanjutan
-                  </motion.p>
-                </motion.div>
-
-
-                {/* Action Buttons - Creative Layout */}
-                <motion.div
-                  className="flex flex-col sm:flex-row gap-3 lg:gap-4 pt-6 lg:pt-8"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 1.2 }}
-                >
-                  <motion.div
-                    whileHover={{ scale: 1.05, rotate: 2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Link
-                      href="/lkti"
-                      className="group relative inline-flex items-center justify-center gap-2 lg:gap-3 px-6 lg:px-8 py-3 lg:py-4 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-400 hover:to-blue-500 text-white font-bold rounded-xl lg:rounded-2xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300 overflow-hidden text-sm lg:text-base"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <motion.span
-                        className="relative z-10"
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                      >
-                        LKTI
-                      </motion.span>
-                      <motion.svg
-                        className="w-4 h-4 lg:w-5 lg:h-5 relative z-10"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        animate={{ rotate: [0, 10, -10, 0] }}
-                        transition={{
-                          duration: 3,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                          delay: 0.5,
-                        }}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </motion.svg>
-                    </Link>
-                  </motion.div>
-
-                  <motion.div
-                    whileHover={{ scale: 1.05, rotate: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Link
-                      href="/ebc"
-                      className="group relative inline-flex items-center justify-center gap-2 lg:gap-3 px-6 lg:px-8 py-3 lg:py-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold rounded-xl lg:rounded-2xl shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300 overflow-hidden text-sm lg:text-base"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      <motion.span
-                        className="relative z-10"
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                          delay: 0.3,
-                        }}
-                      >
-                        EBC
-                      </motion.span>
-                      <motion.svg
-                        className="w-4 h-4 lg:w-5 lg:h-5 relative z-10"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        animate={{ rotate: [0, -10, 10, 0] }}
-                        transition={{
-                          duration: 3,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                          delay: 0.8,
-                        }}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </motion.svg>
-                    </Link>
-                  </motion.div>
-                </motion.div>
-              </motion.div>
-
-              {/* Right Content - Visual Elements */}
-              <motion.div
-                className="lg:col-span-5 relative mt-8 lg:mt-0"
-                initial={{ opacity: 0, x: 100, rotate: 10 }}
-                animate={{ opacity: 1, x: 0, rotate: 0 }}
-                transition={{ duration: 1, delay: 0.5 }}
-              >
-                {/* Floating Cards */}
-                <motion.div
-                  className="relative h-64 sm:h-80 lg:h-96 flex items-center justify-center"
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{
-                    duration: 20,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
-                >
-                  {/* Main Floating Card */}
-                  <motion.div
-                    className="relative bg-white/10 backdrop-blur-xl rounded-2xl lg:rounded-3xl p-6 lg:p-8 border border-white/20 shadow-2xl"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  >
-                    <motion.div
-                      className="text-center space-y-3 lg:space-y-4"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.8, delay: 1.5 }}
-                    >
-                      <motion.div
-                        className="w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-xl lg:rounded-2xl flex items-center justify-center mx-auto"
-                        animate={{
-                          rotate: [0, 360],
-                          scale: [1, 1.1, 1],
-                        }}
-                        transition={{
-                          duration: 8,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                      >
-                        <svg className="w-6 h-6 lg:w-8 lg:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                      </motion.div>
-                      <h3 className="text-lg lg:text-2xl font-bold text-white">Inovasi</h3>
-                      <p className="text-gray-300 text-xs lg:text-sm">Untuk Masa Depan Berkelanjutan</p>
-                    </motion.div>
-                  </motion.div>
-
-                  {/* Floating Mini Cards */}
-                  <motion.div
-                    className="absolute -top-3 -right-3 lg:-top-4 lg:-right-4 w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-r from-purple-400 to-pink-500 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-xl"
-                    animate={{
-                      y: [0, -20, 0],
-                      rotate: [0, 15, -15, 0],
-                    }}
-                    transition={{
-                      duration: 6,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                  >
-                    <span className="text-white font-bold text-sm lg:text-lg">🌱</span>
-                  </motion.div>
-
-                  <motion.div
-                    className="absolute -bottom-4 -left-4 lg:-bottom-6 lg:-left-6 w-12 h-12 lg:w-16 lg:h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-xl"
-                    animate={{
-                      y: [0, 25, 0],
-                      x: [0, -15, 0],
-                      rotate: [0, -20, 20, 0],
-                    }}
-                    transition={{
-                      duration: 8,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: 2,
-                    }}
-                  >
-                    <span className="text-white font-bold text-xs lg:text-lg">⚡</span>
-                  </motion.div>
-                </motion.div>
-              </motion.div>
-            </div>
-          </div>
-        </div>
-
-        {/* Scroll Indicator - Creative Design */}
-        <motion.div
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 2 }}
-        >
-          <motion.div
-            className="flex flex-col items-center gap-2"
-            animate={{ y: [0, 10, 0] }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            <span className="text-white/60 text-sm font-medium">Gulir untuk menjelajahi</span>
-            <motion.div
-              className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center"
-              animate={{ borderColor: ["rgba(255,255,255,0.4)", "rgba(255,255,255,0.8)", "rgba(255,255,255,0.4)"] }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              <motion.div
-                className="w-1 h-2 bg-white/60 rounded-full mt-2"
-                animate={{ y: [0, 12, 0], opacity: [0.6, 1, 0.6] }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            </motion.div>
-          </motion.div>
-        </motion.div>
       </section>
 
       {/* About ENVIRONATION - Compact Design */}
@@ -1224,9 +845,9 @@ export default function Home() {
 
           {/* Horizontal Scrollable Timeline */}
           <div className="relative">
-            {/* Scrollable Container */}
-            <div className="overflow-x-auto pb-4" ref={scrollRef}>
-              <div className="flex gap-6 min-w-max px-4 items-stretch">
+            {/* Scrollable Container for Desktop */}
+            <div className={`overflow-x-auto pb-4 ${isMobile ? 'hidden' : ''}`} ref={scrollRef}>
+              <div className="flex gap-6 min-w-max px-6 sm:px-12 items-stretch justify-center md:justify-start">
                 {[
                   {
                     month: "SEP",
@@ -1325,7 +946,7 @@ export default function Home() {
                   return (
                     <motion.div
                       key={event.title}
-                      className="group relative flex-shrink-0 w-80 mt-6 min-h-[220px] cursor-pointer"
+                      className="group relative flex-shrink-0 w-64 sm:w-80 mt-6 min-h-[180px] sm:min-h-[220px] cursor-pointer mx-auto"
                       initial={{ opacity: 0, x: 50, scale: 0.9 }}
                       whileInView={{ opacity: 1, x: 0, scale: 1 }}
                       transition={{
@@ -1411,7 +1032,7 @@ export default function Home() {
 
                         {/* Icon */}
                         <motion.div
-                          className={`w-16 h-16 bg-gradient-to-r ${event.gradient} rounded-2xl flex items-center justify-center text-3xl mb-4 mx-auto shadow-xl ${
+                          className={`w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r ${event.gradient} rounded-2xl flex items-center justify-center text-2xl sm:text-3xl mb-3 sm:mb-4 mx-auto shadow-xl ${
                             isPast ? 'opacity-50' : ''
                           }`}
                           whileHover={isPast ? {} : { scale: 1.1, rotate: 5 }}
@@ -1432,7 +1053,7 @@ export default function Home() {
                         {/* Content */}
                         <div className="text-center">
                           <motion.h3
-                            className={`text-lg font-bold mb-2 leading-tight ${
+                            className={`text-base sm:text-lg font-bold mb-1 sm:mb-2 leading-tight ${
                               isPast ? 'text-gray-500' : 'text-gray-900'
                             }`}
                             initial={{ opacity: 0, y: 10 }}
@@ -1443,7 +1064,7 @@ export default function Home() {
                             {event.title}
                           </motion.h3>
                           <motion.p
-                            className={`text-sm leading-relaxed ${
+                            className={`text-xs sm:text-sm leading-relaxed ${
                               isPast ? 'text-gray-400' : 'text-gray-600'
                             }`}
                             initial={{ opacity: 0, y: 10 }}
@@ -1469,6 +1090,261 @@ export default function Home() {
                     </motion.div>
                   );
                 })}
+              </div>
+            </div>
+
+            {/* Carousel Container for Mobile */}
+            <div className={`relative overflow-hidden ${isMobile ? '' : 'hidden'}`}>
+              <div 
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {[
+                  {
+                    month: "SEP",
+                    date: "19",
+                    fullDate: "2025-09-19",
+                    title: "Opening",
+                    description: "Pembukaan ENVIRONATION 2025",
+                    icon: "🎉",
+                    gradient: "from-emerald-500 to-teal-500",
+                    delay: 0,
+                    detail: "Kegiatan Opening ENVIRONATION 2025 merupakan acara simbolis pembukaan mulainya gerbang baru kepanitiaan ENVIRONATION 2025."
+                  },
+                  {
+                    month: "SEP-OKT",
+                    date: "29-30",
+                    fullDate: "2025-09-29",
+                    title: "Registrasi & Roadshow",
+                    description: "Pendaftaran kompetisi & roadshow SMA",
+                    icon: "📝",
+                    gradient: "from-teal-500 to-cyan-500",
+                    delay: 0.1,
+                    detail: ""
+                  },
+                  {
+                    month: "OKT",
+                    date: "19",
+                    fullDate: "2025-10-19",
+                    title: "Webinar & Upskill",
+                    description: "Sesi pengembangan keterampilan",
+                    icon: "🎓",
+                    gradient: "from-cyan-500 to-blue-500",
+                    delay: 0.2,
+                    detail: "Acara ini mencakup tiga sesi utama: (1) seminar lingkungan bertema \"ESG Implementation and Its Contribution to Environmental SDGs\"; (2) sesi Skill Up dan (3) sesi Skill Up Bisnis"
+                  },
+                  {
+                    month: "OKT",
+                    date: "25",
+                    fullDate: "2025-10-25",
+                    title: "Open TL & Roadshow",
+                    description: "Technical Loss & roadshow final",
+                    icon: "🚀",
+                    gradient: "from-blue-500 to-indigo-500",
+                    delay: 0.3,
+                    detail: "Kegiatan memperkenalkan Departemen Teknik Lingkungan ITS beserta bidang keilmuan dan prospek kariernya kepada peserta, khususnya siswa SMA, melalui rangkaian kegiatan edukatif dan interaktif. Intinya, acara ini bertujuan memberi pengalaman nyata tentang dunia teknik lingkungan lewat Tour TL (kunjungan laboratorium), One Day Lecture & FGD (pemahaman isu lingkungan dan diskusi solusi), serta Workshop Laboratorium (praktik sederhana dan aplikatif). Dengan cara ini, peserta tidak hanya mengenal fasilitas dan riset di TL ITS, tetapi juga terdorong untuk peduli pada isu lingkungan dan termotivasi melanjutkan studi di bidang ini."
+                  },
+                  {
+                    month: "OKT-DES",
+                    date: "30-18",
+                    fullDate: "2025-10-30",
+                    title: "Competition",
+                    description: "Pelaksanaan kompetisi utama",
+                    icon: "🏆",
+                    gradient: "from-indigo-500 to-purple-500",
+                    delay: 0.4,
+                    detail: "Lomba Karya Tulis Ilmiah (LKTI) Environation 2025 merupakan salah satu rangkaian utama dalam kegiatan Environation yang mengedepankan semangat keberlanjutan dan kontribusi nyata generasi muda terhadap pencapaian Sustainable Development Goals (SDGs). Kompetisi ini dibagi menjadi dua cabang, yaitu Essay Competition dan Paper Competition, yang masing-masing ditujukan untuk kelompok peserta berbeda.\n\nEnviro Business Competition (EBC) Merupakan salah satu rangkaian utama dari Environation 2025 yang diselenggarakan oleh Himpunan Mahasiswa Teknik Lingkungan ITS. Kompetisi ini dirancang sebagai wadah bagi siswa dan mahasiswa untuk menyalurkan ide bisnis inovatif yang berorientasi pada keberlanjutan lingkungan. Bentuk kegiatan EBC terdiri dari beberapa tahap yang terstruktur dengan tujuan memberikan pengalaman belajar, berkompetisi, sekaligus berjejaring secara komprehensif. Pada tahun 2025, EBC mengusung tema besar \"Sustainable Development Goals (SDGs) sebagai Arah Inovasi Bisnis Berkelanjutan\". Tema ini menjadi landasan dalam setiap tahapan lomba, di mana peserta ditantang untuk menghadirkan solusi bisnis yang mampu menjawab isu-isu global sekaligus memberikan manfaat nyata bagi masyarakat dan lingkungan"
+                  },
+                  {
+                    month: "NOV",
+                    date: "7",
+                    fullDate: "2025-11-07",
+                    title: "Uji Emisi",
+                    description: "Pengujian emisi kendaraan",
+                    icon: "🔬",
+                    gradient: "from-purple-500 to-pink-500",
+                    delay: 0.5,
+                    detail: "Tujuan dari kegiatan ini adalah sebagai wadah edukasi memastikan kendaraan memenuhi standar emisi yang ditetapkan pemerintah serta menjaga kualitas udara dari polusi gas buang kendaraan. Uji emisi akan dilaksanakan di Graha ITS dengan koordinasi bersama Dinas Perhubungan Kota Surabaya dan Polrestabes Kota Surabaya atau Kepolisian Sektor sekitar lokasi pengujian."
+                  },
+                  {
+                    month: "DES",
+                    date: "18",
+                    fullDate: "2025-12-18",
+                    title: "Closing",
+                    description: "Exhibition, Pitching & Talkshow",
+                    icon: "🎊",
+                    gradient: "from-pink-500 to-red-500",
+                    delay: 0.6,
+                    detail: "Closing ENVIRONATION 2025 berisikan rangkaian kegiatan pitching finalis perlombaan dengan jumlah 5 tim paper competition dan 10 tim Enviro Business Competition, berikutnya terdapat pameran karya hasil atau prototype para finalis perlombaan. Closing ENVIRONATION 2025 juga menghadirkan 27 maket Desain Infrastruktur Lingkungan Berkelanjutan dari mahasiswa Teknik Lingkungan angkatan 2022. Dalam kegiatan Exhibition ini, peserta Lomba Karya Tulis Ilmiah dan Enviro Business Competition serta mahasiswa Teknik Lingkungan ITS diberi kesempatan untuk memamerkan hasil eksplorasi visual dan konseptual mereka."
+                  },
+                  {
+                    month: "DES",
+                    date: "19",
+                    fullDate: "2025-12-19",
+                    title: "Company Visit",
+                    description: "Kunjungan perusahaan & travelling",
+                    icon: "🏢",
+                    gradient: "from-red-500 to-orange-500",
+                    delay: 0.7,
+                    detail: ""
+                  }
+                ].map((event) => {
+                  const eventDate = new Date(event.fullDate);
+                  const currentDate = new Date('2025-09-25');
+                  const isPast = eventDate < currentDate;
+                  const isToday = eventDate.toDateString() === currentDate.toDateString();
+
+                  return (
+                    <motion.div
+                      key={event.title}
+                      className="group relative flex-shrink-0 w-full px-6 items-stretch justify-center"
+                      initial={{ opacity: 0, x: 50, scale: 0.9 }}
+                      whileInView={{ opacity: 1, x: 0, scale: 1 }}
+                      transition={{
+                        duration: 0.6,
+                        delay: event.delay,
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20
+                      }}
+                      viewport={{ once: true }}
+                      whileHover={{ y: isPast ? 0 : -8, scale: isPast ? 1 : 1.02 }}
+                      style={{ filter: isPast ? 'grayscale(100%) opacity(0.6)' : 'none' }}
+                      onClick={() => { if (!isPast) { setSelectedEvent(event); setShowModal(true); } }}
+                    >
+                      {/* Status Indicator */}
+                      <div className="flex justify-center mb-2">
+                        {isPast ? (
+                          <motion.div
+                            className="px-6 py-1 bg-gray-200 text-gray-600 text-xs font-medium rounded-full"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: event.delay + 0.5 }}
+                          >
+                            ✓ Selesai
+                          </motion.div>
+                        ) : isToday ? (
+                          <motion.div
+                            className="px-6 py-1 bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: event.delay + 0.5 }}
+                          >
+                            🔴 Sedang Berlangsung
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full min-w-max"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: event.delay + 0.5 }}
+                          >
+                            ⏳ Akan Datang
+                          </motion.div>
+                        )}
+                      </div>
+
+                      {/* Card Background */}
+                      <motion.div
+                        className={`relative bg-white/90 backdrop-blur-xl rounded-2xl p-6 border border-white/50 shadow-xl transition-all duration-300 overflow-hidden ${
+                          isPast ? 'cursor-not-allowed' : 'hover:shadow-2xl'
+                        }`}
+                        style={{
+                          transformStyle: "preserve-3d",
+                          pointerEvents: isPast ? 'none' : 'auto'
+                        }}
+                      >
+                        {/* Gradient Background */}
+                        <div className={`absolute inset-0 bg-gradient-to-br ${event.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-2xl`} />
+
+                        {/* Date Badge - More Prominent for Mobile */}
+                        <motion.div
+                          className="flex items-center justify-center mb-4"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.5, delay: event.delay + 0.2 }}
+                          viewport={{ once: true }}
+                        >
+                          <div className={`px-4 py-2 bg-gradient-to-r ${event.gradient} text-white text-base font-bold rounded-lg shadow-lg ${
+                            isPast ? 'opacity-50' : ''
+                          }`}>
+                            {event.month} {event.date}
+                          </div>
+                        </motion.div>
+
+                        {/* Icon */}
+                        <motion.div
+                          className={`w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r ${event.gradient} rounded-2xl flex items-center justify-center text-2xl sm:text-3xl mb-3 sm:mb-4 mx-auto shadow-xl ${
+                            isPast ? 'opacity-50' : ''
+                          }`}
+                          whileHover={isPast ? {} : { scale: 1.1, rotate: 5 }}
+                          initial={{ scale: 0 }}
+                          whileInView={{ scale: 1 }}
+                          transition={{
+                            duration: 0.5,
+                            delay: event.delay + 0.3,
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 20
+                          }}
+                          viewport={{ once: true }}
+                        >
+                          {event.icon}
+                        </motion.div>
+
+                        {/* Content */}
+                        <div className="text-center">
+                          <motion.h3
+                            className={`text-base sm:text-lg font-bold mb-1 sm:mb-2 leading-tight ${
+                              isPast ? 'text-gray-500' : 'text-gray-900'
+                            }`}
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: event.delay + 0.4 }}
+                            viewport={{ once: true }}
+                          >
+                            {event.title}
+                          </motion.h3>
+                          <motion.p
+                            className={`text-xs sm:text-sm leading-relaxed ${
+                              isPast ? 'text-gray-400' : 'text-gray-600'
+                            }`}
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: event.delay + 0.5 }}
+                            viewport={{ once: true }}
+                          >
+                            {event.description}
+                          </motion.p>
+                        </div>
+
+                        {/* Hover Effect */}
+                        {!isPast && (
+                          <motion.div
+                            className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${event.gradient} rounded-b-2xl`}
+                            initial={{ scaleX: 0 }}
+                            whileHover={{ scaleX: 1 }}
+                            transition={{ duration: 0.3 }}
+                            style={{ originX: 0 }}
+                          />
+                        )}
+                      </motion.div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Dots Indicator */}
+              <div className="flex justify-center mt-4 space-x-2">
+                {Array.from({ length: 8 }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentSlide(i)}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                      i === currentSlide ? 'bg-emerald-500 scale-125' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
               </div>
             </div>
 
@@ -1633,9 +1509,9 @@ export default function Home() {
               )}
             </AnimatePresence>
 
-            {/* Scroll Indicator */}
+            {/* Scroll Indicator for Desktop */}
             <motion.div
-              className="flex justify-center mt-4"
+              className={`flex justify-center mt-4 ${isMobile ? 'hidden' : ''}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
