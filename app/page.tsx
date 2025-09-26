@@ -1705,7 +1705,7 @@ export default function Home() {
           </li>
 
           <li className="flex items-center gap-3">
-            <svg class="w-5 h-5 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919C8.416 2.175 8.796 2.163 12 2.163zm0 1.441c-3.171 0-3.543.012-4.782.069-2.704.123-3.951.996-4.103 2.808-.056 1.205-.068 1.572-.068 4.518s.012 3.313.068 4.518c.152 1.812 1.399 2.685 4.103 2.808 1.239.057 1.611.069 4.782.069s3.543-.012 4.782-.069c2.704-.123 3.951-.996 4.103-2.808.056-1.205.068-1.572.068-4.518s-.012-3.313-.068-4.518c-.152-1.812-1.399-2.685-4.103-2.808-1.239-.057-1.611-.069-4.782-.069zm0 3.333a4.062 4.062 0 100 8.124 4.062 4.062 0 000-8.124zm0 6.682a2.62 2.62 0 110-5.24 2.62 2.62 0 010 5.24zM18.225 6.132a.96.96 0 100 1.92.96.96 0 000-1.92z"/>
             </svg>
             <span className="text-gray-700 hover:text-gray-900 transition-colors">@environation_its</span>
@@ -1729,8 +1729,8 @@ export default function Home() {
       
     </div>
     
-    <div class="mt-12 pt-8 border-t border-gray-300">
-      <p class="text-center text-sm text-gray-600">
+    <div className="mt-12 pt-8 border-t border-gray-300">
+      <p className="text-center text-sm text-gray-600">
         © 2025 ENVIRONATION. All rights reserved.
       </p>
     </div>
